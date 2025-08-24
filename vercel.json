@@ -1,11 +1,10 @@
 {
   "version": 2,
-  "builds": [
-    {
-      "src": "/api/upload.php",
-      "use": "vercel-php@0.6.0"
+  "functions": {
+    "php/upload.php": {
+      "runtime": "vercel-php@0.6.0"
     }
-  ],
+  },
   "rewrites": [
     {
       "source": "/files/(.*)",
@@ -13,19 +12,7 @@
     },
     {
       "source": "/api/upload.php",
-      "destination": "/api/upload.php"
-    },
-    {
-      "source": "/api-docs.html",
-      "destination": "/api-docs.html"
-    },
-    {
-      "source": "/config.js",
-      "destination": "/config.js"
-    },
-    {
-      "source": "/(.*)",
-      "destination": "/index.html"
+      "destination": "/php/upload.php"
     }
   ]
 }
