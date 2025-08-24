@@ -1,0 +1,30 @@
+{
+  "version": 2,
+  "functions": {
+    "api/upload.php": {
+      "runtime": "vercel-php@0.6.0"
+    }
+  },
+  "rewrites": [
+    {
+      "source": "/files/(.*)",
+      "destination": "https://bgykitdaudcmcetqijkd.supabase.co/storage/v1/object/public/kabox-uploads/$1"
+    },
+    {
+      "source": "/api/upload.php",
+      "destination": "/api/upload.php"
+    },
+    {
+      "source": "/api-docs.html",
+      "destination": "/api-docs.html"
+    },
+    {
+      "source": "/config.js",
+      "destination": "/config.js"
+    },
+    {
+      "source": "/(.*)",
+      "destination": "/index.html"
+    }
+  ]
+}
