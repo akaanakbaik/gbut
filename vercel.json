@@ -1,11 +1,10 @@
 {
   "version": 2,
-  "builds": [
-    {
-      "src": "api/upload.php",
-      "use": "@vercel/php"
+  "functions": {
+    "api/upload.php": {
+      "runtime": "vercel-php@0.7.4"
     }
-  ],
+  },
   "rewrites": [
     {
       "source": "/files/(.*)",
