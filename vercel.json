@@ -1,19 +1,14 @@
 {
   "version": 2,
-  "builds": [
-    {
-      "src": "/php/upload.php",
-      "use": "vercel-php@0.6.0"
+  "functions": {
+    "api/upload.php": {
+      "runtime": "vercel-php@0.6.0"
     }
-  ],
+  },
   "rewrites": [
     {
       "source": "/files/(.*)",
       "destination": "https://bgykitdaudcmcetqijkd.supabase.co/storage/v1/object/public/kabox-uploads/$1"
-    },
-    {
-      "source": "/api/(.*)",
-      "destination": "/php/upload.php"
     }
   ]
 }
