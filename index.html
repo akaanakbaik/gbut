@@ -24,23 +24,14 @@
         .bendera-text { background: linear-gradient(to bottom, #FF5555 50%, #ffffff 50%); -webkit-background-clip: text; background-clip: text; color: transparent; -webkit-text-fill-color: transparent; font-weight: bold; -webkit-text-stroke: 0.5px rgba(0,0,0,0.5); transition: filter 0.2s ease; }
         .aka-link:hover .bendera-text { filter: brightness(1.25); }
         
-        /* Notifikasi Toast */
-        #notification {
-            transition: transform 0.4s ease-in-out, opacity 0.4s ease-in-out;
-            transform: translateX(120%);
-            opacity: 0;
-        }
-        #notification.show {
-            transform: translateX(0);
-            opacity: 1;
-        }
+        #notification { transition: transform 0.4s ease-in-out, opacity 0.4s ease-in-out; transform: translateX(120%); opacity: 0; }
+        #notification.show { transform: translateX(0); opacity: 1; }
         #notification.success { background-color: #16a34a; border-color: #22c55e; color: #ffffff; box-shadow: 6px 6px 0 #052e16; }
         #notification.error { background-color: #dc2626; border-color: #ef4444; color: #ffffff; box-shadow: 6px 6px 0 #450a0a; }
     </style>
 </head>
 <body class="min-h-screen flex flex-col items-center justify-center p-4 text-2xl">
 
-    <!-- Notification Toast -->
     <div id="notification" class="fixed top-5 right-5 p-4 rounded-lg text-lg pixel-border max-w-sm z-50">
         <p id="notification-message"></p>
     </div>
@@ -96,7 +87,7 @@
         const showNotification = (message, type = 'success', duration = 5000) => {
             clearTimeout(notificationTimeout);
             notificationMessage.textContent = message;
-            notification.className = 'fixed top-5 right-5 p-4 rounded-lg text-lg pixel-border max-w-sm z-50'; // Reset
+            notification.className = 'fixed top-5 right-5 p-4 rounded-lg text-lg pixel-border max-w-sm z-50';
             notification.classList.add(type, 'show');
             notificationTimeout = setTimeout(() => notification.classList.remove('show'), duration);
         };
@@ -111,6 +102,15 @@
             uploadBtn.disabled = false;
             uploadBtn.textContent = 'Unggah';
         };
+
+        const resetQueueAndButton = () => {
+            filesToUpload = [];
+            fileInput.value = '';
+            urlInput.value = '';
+            updateFileQueueUI();
+            uploadBtn.disabled = false;
+            uploadBtn.textContent = 'Unggah';
+        }
 
         const updateFileQueueUI = () => {
             fileQueueContainer.innerHTML = '';
@@ -135,14 +135,20 @@
             resultsTitle.classList.remove('text-red-400');
             resultsDiv.innerHTML = '';
             files.forEach(file => {
+                const url = `${window.location.origin}${file.url}`;
+                const extension = file.url.split('.').pop().toUpperCase() || 'FILE';
                 const resultEl = document.createElement('div');
-                resultEl.className = 'flex flex-col sm:flex-row items-center gap-4';
-                resultEl.innerHTML = `<input type="text" readonly value="${window.location.origin}${file.url}" class="w-full bg-transparent p-2 focus:outline-none pixel-border text-center sm:text-left"><button class="copy-btn pixel-button px-4 py-2 w-full sm:w-auto">Salin</button>`;
+                resultEl.className = 'flex flex-col sm:flex-row items-stretch sm:items-center gap-2 md:gap-4';
+                resultEl.innerHTML = `
+                    <input type="text" readonly value="${url}" class="url-to-copy w-full bg-transparent p-2 focus:outline-none pixel-border text-center sm:text-left">
+                    <span class="pixel-border bg-black/30 px-3 py-2 text-lg text-center">${extension}</span>
+                    <button class="copy-btn pixel-button px-4 py-2 w-full sm:w-auto">Salin</button>
+                `;
                 resultsDiv.appendChild(resultEl);
             });
             document.querySelectorAll('.copy-btn').forEach(button => {
                 button.addEventListener('click', e => {
-                    const urlField = e.target.previousElementSibling;
+                    const urlField = e.currentTarget.parentElement.querySelector('.url-to-copy');
                     urlField.select();
                     try {
                         document.execCommand('copy');
@@ -185,6 +191,9 @@
                 return;
             }
 
+            // Sembunyikan hasil lama saat upload baru dimulai
+            resultsContainer.classList.add('hidden');
+
             const formData = new FormData();
             if (filesToUpload.length > 0) {
                 filesToUpload.forEach(file => formData.append('files[]', file));
@@ -210,7 +219,6 @@
                 if (result.files && result.files.length > 0) {
                     displaySuccess(result.files);
                 }
-                // Handle partial success
                 if (result.errors && result.errors.length > 0) {
                     showNotification(`Beberapa file gagal: ${result.errors.join(', ')}`, 'error', 8000);
                 }
@@ -219,10 +227,10 @@
                 progressBar.style.backgroundColor = '#ef4444';
                 showNotification(error.message, 'error', 8000);
             } finally {
-                setTimeout(resetUploader, 1500);
+                // Hanya reset antrian dan tombol, biarkan hasil tetap terlihat
+                resetQueueAndButton();
             }
         });
     </script>
 </body>
 </html>
-
