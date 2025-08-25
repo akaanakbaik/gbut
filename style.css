@@ -1,0 +1,185 @@
+:root {
+    --bg-deep-space: #181A1B;
+    --bg-panel: #222426;
+    --border-cyber-blue: #00A9FF;
+    --text-cyber-blue: #87C4FF;
+    --text-light: #E2E2E2;
+    --dropzone-border: #4D8B8B;
+    --dropzone-hover-bg: rgba(77, 139, 139, 0.1);
+    --btn-go-bg: #2A9D8F;
+    --btn-go-shadow: #1E6F65;
+    --btn-stop-bg: #E76F51;
+    --btn-stop-shadow: #A24E38;
+    --btn-copy-bg: #E9C46A;
+    --btn-copy-shadow: #A4894A;
+    --result-url-text: #A7FF89;
+}
+
+body { 
+    font-family: 'VT323', monospace; 
+    background-color: var(--bg-deep-space); 
+    color: var(--text-light); 
+}
+
+.pixel-border { 
+    border: 4px solid var(--border-cyber-blue); 
+    box-shadow: 6px 6px 0 #005C8E; 
+}
+
+.pixel-button {
+    transition: all 0.15s ease-out;
+    color: white;
+    text-shadow: 2px 2px 0px rgba(0,0,0,0.4);
+}
+.pixel-button:hover {
+    transform: translate(2px, 2px);
+}
+.pixel-button:active {
+    transform: translate(4px, 4px);
+}
+
+.btn-go { 
+    background-color: var(--btn-go-bg); 
+    border: 4px solid var(--btn-go-bg); 
+    box-shadow: 4px 4px 0 var(--btn-go-shadow); 
+}
+.btn-go:hover { 
+    box-shadow: 2px 2px 0 var(--btn-go-shadow); 
+}
+.btn-go:active { 
+    box-shadow: 0 0 0 var(--btn-go-shadow); 
+}
+
+.btn-stop { 
+    background-color: var(--btn-stop-bg); 
+    border: 4px solid var(--btn-stop-bg); 
+    box-shadow: 4px 4px 0 var(--btn-stop-shadow); 
+}
+.btn-stop:hover { 
+    box-shadow: 2px 2px 0 var(--btn-stop-shadow); 
+}
+.btn-stop:active { 
+    box-shadow: 0 0 0 var(--btn-stop-shadow); 
+}
+
+.btn-copy { 
+    background-color: var(--btn-copy-bg); 
+    border: 4px solid var(--btn-copy-bg); 
+    box-shadow: 4px 4px 0 var(--btn-copy-shadow); 
+}
+.btn-copy:hover { 
+    box-shadow: 2px 2px 0 var(--btn-copy-shadow); 
+}
+.btn-copy:active { 
+    box-shadow: 0 0 0 var(--btn-copy-shadow); 
+}
+
+.btn-info { 
+    background-color: var(--bg-panel); 
+    border: 4px solid var(--border-cyber-blue); 
+    box-shadow: 4px 4px 0 #005C8E; 
+    color: var(--text-cyber-blue); 
+}
+.btn-info:hover { 
+    background-color: var(--border-cyber-blue); 
+    color: var(--bg-deep-space); 
+    text-shadow: none;
+}
+.btn-info:active { 
+    box-shadow: 0 0 0 #005C8E; 
+}
+
+#dropzone { 
+    border: 4px dashed var(--dropzone-border); 
+    transition: background-color 0.2s ease; 
+}
+#dropzone:hover { 
+    background-color: var(--dropzone-hover-bg); 
+}
+.url-result { 
+    color: var(--result-url-text); 
+    background-color: rgba(0,0,0,0.3); 
+}
+
+.bendera-text {
+  position: relative;
+  display: inline-block;
+  font-weight: bold;
+  font-size: 2rem;
+  background: linear-gradient(to bottom, #ff0000 50%, #ffffff 50%);
+  background-size: 200% 200%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  -webkit-text-fill-color: transparent;
+  -webkit-text-stroke: 0.5px rgba(0,0,0,0.4);
+
+  animation: waveColor 4s infinite linear, waveMove 6s infinite ease-in-out;
+}
+
+@keyframes waveColor {
+  0% { background-position: 0% 0%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 0%; }
+}
+
+@keyframes waveMove {
+  0% { transform: translateY(0px) skewX(0deg); }
+  25% { transform: translateY(-2px) skewX(3deg); }
+  50% { transform: translateY(2px) skewX(-3deg); }
+  75% { transform: translateY(-1px) skewX(2deg); }
+  100% { transform: translateY(0px) skewX(0deg); }
+}
+.aka-link:hover .bendera-text { 
+    filter: brightness(1.25); 
+}
+
+#notification { 
+    transition: transform 0.4s ease-in-out, opacity 0.4s ease-in-out; 
+    transform: translateX(120%); 
+    opacity: 0; 
+}
+#notification.show { 
+    transform: translateX(0); 
+    opacity: 1; 
+}
+#notification.success { 
+    background-color: var(--btn-go-bg); 
+    border: 4px solid var(--btn-go-shadow); 
+    color: white; 
+    box-shadow: 6px 6px 0 var(--btn-go-shadow); 
+}
+
+.pixel-pointer {
+  width: 16px;
+  height: 16px;
+  position: relative;
+  background: transparent;
+}
+
+.pixel-pointer::before {
+  content: "";
+  position: absolute;
+  left: 6px;
+  top: 0;
+  width: 4px;
+  height: 10px;
+  background: black;
+}
+
+.pixel-pointer::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 10px;
+  width: 12px;
+  height: 6px;
+  background: black;
+}
+
+#notification.error { 
+    background-color: var(--btn-stop-bg); 
+    border: 4px solid var(--btn-stop-shadow); 
+    color: white; 
+    box-shadow: 6px 6px 0 var(--btn-stop-shadow); 
+}
