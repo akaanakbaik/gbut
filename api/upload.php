@@ -6,10 +6,9 @@ header('Access-Control-Allow-Methods: POST');
 header('Access-Control-Allow-Headers: Content-Type');
 
 // --- KONFIGURASI SUPABASE ---
-// Ambil dari environment variables jika ada (lebih aman), atau hardcode.
-$supabaseUrl = getenv('SUPABASE_URL') ?: 'https://bgykitdaudcmcetqijkd.supabase.co';
-$supabaseKey = getenv('SUPABASE_KEY') ?: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJneWtpdGRhdWRjbWNldHFpamtkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTA0MzEyNjcsImV4cCI6MjA2NjAwNzI2N30.CZjOxc0_7cHEvPFUDr7zLzqaDDeIr_5tUcObBLKqg3Q';
-$bucketName = getenv('BUCKET_NAME') ?: 'kabox-uploads';
+$supabaseUrl = 'https://bgykitdaudcmcetqijkd.supabase.co';
+$supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJneWtpdGRhdWRjbWNldHFpamtkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTA0MzEyNjcsImV4cCI6MjA2NjAwNzI2N30.CZjOxc0_7cHEvPFUDr7zLzqaDDeIr_5tUcObBLKqg3Q';
+$bucketName = 'kabox-uploads';
 $maxFileSize = 20 * 1024 * 1024; // 20 MB
 
 // Fungsi untuk mengirim response error standar
@@ -21,37 +20,41 @@ function send_json_error($message, $statusCode = 400) {
 
 // Fungsi untuk menghasilkan nama file acak yang unik
 function generate_random_name($length = 8) {
-    return bin2hex(random_bytes($length / 2)); // Lebih aman dari str_shuffle
+    return bin2hex(random_bytes($length / 2));
 }
 
-// Fungsi inti untuk mengunggah data ke Supabase Storage
+// Fungsi inti untuk mengunggah data ke Supabase Storage (dengan error reporting)
 function upload_to_supabase($fileData, $fileName, $fileMime) {
     global $supabaseUrl, $supabaseKey, $bucketName;
-
     $uploadUrl = $supabaseUrl . '/storage/v1/object/' . $bucketName . '/' . $fileName;
 
     $ch = curl_init($uploadUrl);
     curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-    curl_setopt($ch, CURLOPT_CUSTOMREQUEST, "POST");
+    curl_setopt($ch, CURLOPT_POST, 1);
     curl_setopt($ch, CURLOPT_POSTFIELDS, $fileData);
     curl_setopt($ch, CURLOPT_HTTPHEADER, [
         'Authorization: Bearer ' . $supabaseKey,
         'Content-Type: ' . $fileMime,
-        'x-upsert: false' // Jangan timpa jika ada, untuk mencegah kolisi (meski kecil kemungkinannya)
+        'x-upsert: false'
     ]);
 
     $response = curl_exec($ch);
     $httpcode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+    $curl_error = curl_error($ch);
     curl_close($ch);
 
+    if ($curl_error) {
+        return ['success' => false, 'error' => 'cURL Error: ' . $curl_error];
+    }
+
     if ($httpcode >= 200 && $httpcode < 300) {
-        return true;
+        return ['success' => true, 'error' => null];
     } else {
         $errorData = json_decode($response, true);
-        $errorMessage = $errorData['message'] ?? 'Gagal mengunggah ke Supabase Storage.';
-        // Jangan kirim error langsung, return false agar bisa ditangani di logic utama
-        error_log("Supabase Upload Error: " . $errorMessage);
-        return false;
+        // Pesan error dari Supabase biasanya ada di 'message'
+        $errorMessage = $errorData['message'] ?? 'Terjadi error tidak dikenal pada server storage.';
+        $detailedError = $errorMessage . " (HTTP Status: " . $httpcode . ")";
+        return ['success' => false, 'error' => $detailedError];
     }
 }
 
@@ -61,75 +64,65 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
 }
 
 $uploadedFilesUrls = [];
+$errors = [];
 
 // Handle upload dari URL
 if (isset($_POST['url']) && !empty($_POST['url'])) {
-    if (!empty($_FILES)) {
-        send_json_error('Unggah file atau URL, tidak bisa keduanya bersamaan.', 400);
-    }
-
+    // ... (logika upload dari URL tetap sama, tapi kita implementasikan error reporting)
     $url = filter_var($_POST['url'], FILTER_VALIDATE_URL);
-    if (!$url) {
-        send_json_error('URL yang diberikan tidak valid.');
-    }
-
-    $context = stream_context_create(['http' => ['header' => "User-Agent: KaboxUploader/1.0\r\n"]]);
-    $fileContent = @file_get_contents($url, false, $context);
-
-    if ($fileContent === false) {
-        send_json_error('Gagal mengambil konten dari URL. Pastikan URL dapat diakses secara publik.', 400);
-    }
+    if (!$url) send_json_error('URL tidak valid.');
     
-    if (strlen($fileContent) > $maxFileSize) {
-        send_json_error('File dari URL melebihi batas ukuran 20MB.');
-    }
+    $fileContent = @file_get_contents($url);
+    if ($fileContent === false) send_json_error('Gagal mengambil konten dari URL.');
+    if (strlen($fileContent) > $maxFileSize) send_json_error('File dari URL melebihi batas 20MB.');
 
     $finfo = new finfo(FILEINFO_MIME_TYPE);
     $mimeType = $finfo->buffer($fileContent) ?: 'application/octet-stream';
-    
     $pathInfo = pathinfo(parse_url($url, PHP_URL_PATH));
     $extension = isset($pathInfo['extension']) ? '.' . strtolower($pathInfo['extension']) : '';
-    
     $newFileName = generate_random_name() . $extension;
 
-    if (upload_to_supabase($fileContent, $newFileName, $mimeType)) {
+    $uploadResult = upload_to_supabase($fileContent, $newFileName, $mimeType);
+    if ($uploadResult['success']) {
         $uploadedFilesUrls[] = ['url' => '/files/' . $newFileName];
     } else {
-        send_json_error('Gagal memproses file dari URL.', 500);
+        $errors[] = "Gagal upload dari URL: " . $uploadResult['error'];
     }
 
 // Handle upload file dari form
 } elseif (isset($_FILES['files'])) {
     $files = $_FILES['files'];
-    if (count($files['name']) > 5) {
-        send_json_error('Maksimal 5 file yang bisa diunggah sekaligus.', 400);
-    }
+    if (count($files['name']) > 5) send_json_error('Maksimal 5 file sekali unggah.');
 
     foreach ($files['name'] as $i => $name) {
-        if ($files['error'][$i] !== UPLOAD_ERR_OK) {
-            continue; // Skip file yang error
-        }
+        if ($files['error'][$i] !== UPLOAD_ERR_OK) continue;
         if ($files['size'][$i] > $maxFileSize) {
-            continue; // Skip file yang kebesaran
+            $errors[] = "File '" . htmlspecialchars($name) . "' melebihi batas 20MB.";
+            continue;
         }
 
         $tmpName = $files['tmp_name'][$i];
         $fileExtension = strtolower(pathinfo($name, PATHINFO_EXTENSION));
         $newFileName = generate_random_name(10) . '.' . $fileExtension;
 
-        if (upload_to_supabase(file_get_contents($tmpName), $newFileName, $files['type'][$i])) {
+        $uploadResult = upload_to_supabase(file_get_contents($tmpName), $newFileName, $files['type'][$i]);
+        if ($uploadResult['success']) {
             $uploadedFilesUrls[] = ['url' => '/files/' . $newFileName];
+        } else {
+            $errors[] = "File '" . htmlspecialchars($name) . "': " . $uploadResult['error'];
         }
     }
 } else {
-    send_json_error('Tidak ada file atau URL yang dikirim untuk diunggah.', 400);
+    send_json_error('Tidak ada file atau URL yang dikirim.', 400);
 }
 
-// Kirim response sukses jika ada file yang berhasil diunggah
+// Kirim response
 if (!empty($uploadedFilesUrls)) {
-    echo json_encode(['success' => true, 'files' => $uploadedFilesUrls]);
+    echo json_encode(['success' => true, 'files' => $uploadedFilesUrls, 'errors' => $errors]);
 } else {
-    send_json_error('Tidak ada file yang berhasil diunggah. Cek ukuran atau format file.', 500);
+    $fullErrorMessage = empty($errors)
+        ? 'Tidak ada file yang berhasil diunggah. Cek kembali file Anda.'
+        : implode("\n", $errors);
+    send_json_error($fullErrorMessage, 500);
 }
 ?>
-
