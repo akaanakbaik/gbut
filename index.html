@@ -3,234 +3,57 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Kabox - Simple File Hosting</title>
+    <title>Kabox -Upload media to URL </title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=VT323&display=swap" rel="stylesheet">
-    <style>
-        body { font-family: 'VT323', monospace; background-color: #1a1a1a; color: #55d5ff; }
-        .pixel-border { border: 4px solid #55d5ff; box-shadow: 6px 6px 0 #0b2a33; }
-        .pixel-border-dashed { border: 4px dashed #55d5ff; }
-        .pixel-button { border: 4px solid #55d5ff; transition: all 0.2s ease; box-shadow: 4px 4px 0 #0b2a33; }
-        .pixel-button:hover { background-color: #55d5ff; color: #1a1a1a; box-shadow: 2px 2px 0 #0b2a33; transform: translate(2px, 2px); }
-        .pixel-button:active { box-shadow: 0 0 0 #0b2a33; transform: translate(4px, 4px); }
-        .pixel-button:disabled { background-color: #333; color: #888; border-color: #888; box-shadow: none; transform: none; cursor: not-allowed; }
-        .progress-bar-container { border: 2px solid #55d5ff; padding: 2px; }
-        .progress-bar { background-color: #55d5ff; height: 20px; transition: width 0.5s ease-in-out; }
-        ::-webkit-scrollbar { width: 12px; }
-        ::-webkit-scrollbar-track { background: #1a1a1a; border-left: 2px solid #55d5ff; }
-        ::-webkit-scrollbar-thumb { background: #55d5ff; }
-        .bendera-text { background: linear-gradient(to bottom, #FF5555 50%, #ffffff 50%); -webkit-background-clip: text; background-clip: text; color: transparent; -webkit-text-fill-color: transparent; font-weight: bold; -webkit-text-stroke: 0.5px rgba(0,0,0,0.5); transition: filter 0.2s ease; }
-        .aka-link:hover .bendera-text { filter: brightness(1.25); }
-        
-        #notification { transition: transform 0.4s ease-in-out, opacity 0.4s ease-in-out; transform: translateX(120%); opacity: 0; }
-        #notification.show { transform: translateX(0); opacity: 1; }
-        #notification.success { background-color: #16a34a; border-color: #22c55e; color: #ffffff; box-shadow: 6px 6px 0 #052e16; }
-        #notification.error { background-color: #dc2626; border-color: #ef4444; color: #ffffff; box-shadow: 6px 6px 0 #450a0a; }
-    </style>
+    <link rel="stylesheet" href="style.css">
 </head>
-<body class="min-h-screen flex flex-col items-center justify-center p-4 text-2xl">
+<body class="min-h-screen flex flex-col items-center justify-center p-4 text-xl sm:text-2xl">
 
-    <div id="notification" class="fixed top-5 right-5 p-4 rounded-lg text-lg pixel-border max-w-sm z-50">
+    <div id="notification" class="fixed top-4 right-4 p-3 sm:p-4 text-base sm:text-lg max-w-xs sm:max-w-sm z-50">
         <p id="notification-message"></p>
     </div>
 
     <main class="w-full max-w-4xl mx-auto">
-        <div class="pixel-border bg-[#111] p-6 md:p-10 text-center">
-            <h1 class="text-6xl md:text-8xl mb-4">kabox</h1>
-            <p class="mb-8">Seret & Lepas File Untuk Diunggah</p>
-            <div id="dropzone" class="pixel-border-dashed p-8 md:p-12 mb-6 cursor-pointer transition-colors duration-300">
-                <p id="dropzone-text">Seret file ke sini, atau klik untuk memilih</p>
+        <div class="pixel-border bg-[var(--bg-panel)] p-4 sm:p-6 md:p-8 text-center">
+            <h1 class="text-6xl sm:text-7xl md:text-8xl mb-2 text-[var(--border-cyber-blue)]" style="text-shadow: 4px 4px 0px #005C8E;">kabox</h1>
+            <p class="mb-6 sm:mb-8 text-lg sm:text-xl text-[var(--text-cyber-blue)]">Upload media to URL</p>
+            
+            <div id="dropzone" class="p-6 sm:p-10 mb-6 cursor-pointer">
+                <p id="dropzone-text" class="text-base sm:text-lg text-[var(--dropzone-border)] pointer-events-none">Seret file ke sini, atau klik untuk memilih</p>
                 <input type="file" id="file-input" class="hidden" multiple accept="*/*">
             </div>
+            
             <div class="mb-6">
-                <input type="text" id="url-input" placeholder="Atau tempel URL untuk diunggah" class="w-full bg-transparent p-3 text-center focus:outline-none pixel-border">
+                <input type="text" id="url-input" placeholder="Atau tempel URL" class="w-full bg-black/30 p-3 text-center text-lg sm:text-xl focus:outline-none border-4 border-[var(--dropzone-border)]">
             </div>
-            <div id="file-queue" class="text-left mb-6 space-y-2"></div>
+            
+            <div id="file-queue" class="text-left mb-6 space-y-2 text-base sm:text-lg"></div>
+            
             <div class="flex flex-col sm:flex-row gap-4 justify-center">
-                <button id="upload-btn" class="pixel-button px-8 py-3 w-full sm:w-auto">Unggah</button>
-                <button id="cancel-btn" class="pixel-button px-8 py-3 w-full sm:w-auto bg-red-500/20 border-red-400 text-red-400">Batal</button>
+                <button id="upload-btn" class="pixel-button btn-go px-6 py-3 text-lg sm:text-xl w-full sm:w-auto">Unggah</button>
+                <button id="cancel-btn" class="pixel-button btn-stop px-6 py-3 text-lg sm:text-xl w-full sm:w-auto">Batal</button>
             </div>
         </div>
-        <div id="results-container" class="pixel-border bg-[#111] p-6 md:p-10 mt-8 hidden">
-            <h2 id="results-title" class="text-4xl mb-6 text-center">Hasil URL:</h2>
+
+        <div id="results-container" class="pixel-border bg-[var(--bg-panel)] p-4 sm:p-6 md:p-8 mt-8 hidden">
+            <h2 id="results-title" class="text-3xl sm:text-4xl mb-6 text-center">Hasil URL:</h2>
             <div id="results" class="space-y-4"></div>
         </div>
+
         <div class="text-center mt-8">
-            <a href="/api-docs.html" class="pixel-button px-6 py-2">API Docs & Info</a>
+            <a href="/api-docs.html" class="pixel-button btn-info px-6 py-2 text-lg sm:text-xl">API Docs & Info</a>
         </div>
     </main>
 
-    <footer class="text-center text-lg p-4 mt-4 text-[#55d5ff]">
+
+    <footer class="text-center text-base sm:text-lg p-4 mt-4 text-[var(--text-cyber-blue)]">
         di buat dengan code dan <span class="text-red-500">❤️</span>, crafted by <a href="https://akadev.my.id" target="_blank" rel="noopener noreferrer" class="aka-link"><span class="bendera-text">aka</span></a>
     </footer>
 
     <script src="config.js"></script>
-    <script>
-        const dropzone = document.getElementById('dropzone');
-        const dropzoneText = document.getElementById('dropzone-text');
-        const fileInput = document.getElementById('file-input');
-        const urlInput = document.getElementById('url-input');
-        const uploadBtn = document.getElementById('upload-btn');
-        const cancelBtn = document.getElementById('cancel-btn');
-        const fileQueueContainer = document.getElementById('file-queue');
-        const resultsContainer = document.getElementById('results-container');
-        const resultsTitle = document.getElementById('results-title');
-        const resultsDiv = document.getElementById('results');
-        const notification = document.getElementById('notification');
-        const notificationMessage = document.getElementById('notification-message');
-        let notificationTimeout;
-        let filesToUpload = [];
-
-        // --- UI Functions ---
-        const showNotification = (message, type = 'success', duration = 5000) => {
-            clearTimeout(notificationTimeout);
-            notificationMessage.textContent = message;
-            notification.className = 'fixed top-5 right-5 p-4 rounded-lg text-lg pixel-border max-w-sm z-50';
-            notification.classList.add(type, 'show');
-            notificationTimeout = setTimeout(() => notification.classList.remove('show'), duration);
-        };
-
-        const resetUploader = () => {
-            filesToUpload = [];
-            fileInput.value = '';
-            urlInput.value = '';
-            updateFileQueueUI();
-            dropzoneText.textContent = 'Seret file ke sini, atau klik untuk memilih';
-            resultsContainer.classList.add('hidden');
-            uploadBtn.disabled = false;
-            uploadBtn.textContent = 'Unggah';
-        };
-
-        const resetQueueAndButton = () => {
-            filesToUpload = [];
-            fileInput.value = '';
-            urlInput.value = '';
-            updateFileQueueUI();
-            uploadBtn.disabled = false;
-            uploadBtn.textContent = 'Unggah';
-        }
-
-        const updateFileQueueUI = () => {
-            fileQueueContainer.innerHTML = '';
-            if (filesToUpload.length === 0 && !urlInput.value) return;
-            if (urlInput.value) {
-                 const urlElement = document.createElement('div');
-                 urlElement.className = 'p-2 bg-black/20';
-                 urlElement.textContent = `URL: ${urlInput.value.substring(0, 50)}${urlInput.value.length > 50 ? '...' : ''}`;
-                 fileQueueContainer.appendChild(urlElement);
-            }
-            filesToUpload.forEach(file => {
-                const fileElement = document.createElement('div');
-                fileElement.className = 'p-2 bg-black/20';
-                fileElement.textContent = `${file.name} (${(file.size / 1024 / 1024).toFixed(2)} MB)`;
-                fileQueueContainer.appendChild(fileElement);
-            });
-        };
-
-        const displaySuccess = (files) => {
-            resultsContainer.classList.remove('hidden');
-            resultsTitle.textContent = 'Hasil URL:';
-            resultsTitle.classList.remove('text-red-400');
-            resultsDiv.innerHTML = '';
-            files.forEach(file => {
-                const url = `${window.location.origin}${file.url}`;
-                const extension = file.url.split('.').pop().toUpperCase() || 'FILE';
-                const resultEl = document.createElement('div');
-                resultEl.className = 'flex flex-col sm:flex-row items-stretch sm:items-center gap-2 md:gap-4';
-                resultEl.innerHTML = `
-                    <input type="text" readonly value="${url}" class="url-to-copy w-full bg-transparent p-2 focus:outline-none pixel-border text-center sm:text-left">
-                    <span class="pixel-border bg-black/30 px-3 py-2 text-lg text-center">${extension}</span>
-                    <button class="copy-btn pixel-button px-4 py-2 w-full sm:w-auto">Salin</button>
-                `;
-                resultsDiv.appendChild(resultEl);
-            });
-            document.querySelectorAll('.copy-btn').forEach(button => {
-                button.addEventListener('click', e => {
-                    const urlField = e.currentTarget.parentElement.querySelector('.url-to-copy');
-                    urlField.select();
-                    try {
-                        document.execCommand('copy');
-                        showNotification('URL disalin!', 'success');
-                    } catch (err) {
-                        showNotification('Gagal menyalin!', 'error');
-                    }
-                });
-            });
-        };
-
-        // --- Event Listeners ---
-        dropzone.addEventListener('click', () => fileInput.click());
-        cancelBtn.addEventListener('click', resetUploader);
-        ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => dropzone.addEventListener(eventName, e => { e.preventDefault(); e.stopPropagation(); }));
-        ['dragenter', 'dragover'].forEach(eventName => dropzone.addEventListener(eventName, () => dropzone.classList.add('bg-blue-500/20')));
-        ['dragleave', 'drop'].forEach(eventName => dropzone.addEventListener(eventName, () => dropzone.classList.remove('bg-blue-500/20')));
-        dropzone.addEventListener('drop', e => handleFiles(e.dataTransfer.files));
-        fileInput.addEventListener('change', e => handleFiles(e.target.files));
-        urlInput.addEventListener('input', updateFileQueueUI);
-
-        const handleFiles = (newFiles) => {
-            if (filesToUpload.length + newFiles.length > 5) {
-                showNotification('Maksimal 5 file sekali unggah.', 'error');
-                return;
-            }
-            filesToUpload.push(...Array.from(newFiles));
-            dropzoneText.textContent = `${filesToUpload.length} file dipilih.`;
-            updateFileQueueUI();
-        };
-
-        // --- Upload Logic ---
-        uploadBtn.addEventListener('click', async () => {
-            if (filesToUpload.length === 0 && !urlInput.value) {
-                showNotification('Pilih file atau masukkan URL dulu.', 'error');
-                return;
-            }
-            if (filesToUpload.length > 0 && urlInput.value) {
-                showNotification('Unggah file atau URL, jangan keduanya.', 'error');
-                return;
-            }
-
-            // Sembunyikan hasil lama saat upload baru dimulai
-            resultsContainer.classList.add('hidden');
-
-            const formData = new FormData();
-            if (filesToUpload.length > 0) {
-                filesToUpload.forEach(file => formData.append('files[]', file));
-            } else if (urlInput.value) {
-                formData.append('url', urlInput.value);
-            }
-
-            uploadBtn.disabled = true;
-            uploadBtn.textContent = 'Mengunggah...';
-            fileQueueContainer.innerHTML = '<div class="progress-bar-container"><div id="total-progress" class="progress-bar" style="width: 50%;"></div></div>';
-            const progressBar = document.getElementById('total-progress');
-
-            try {
-                const response = await fetch(config.apiEndpoint, { method: 'POST', body: formData });
-                const result = await response.json();
-                progressBar.style.width = '100%';
-
-                if (!response.ok || !result.success) {
-                    throw new Error(result.error || `HTTP error! Status: ${response.status}`);
-                }
-
-                showNotification('Upload sukses!', 'success');
-                if (result.files && result.files.length > 0) {
-                    displaySuccess(result.files);
-                }
-                if (result.errors && result.errors.length > 0) {
-                    showNotification(`Beberapa file gagal: ${result.errors.join(', ')}`, 'error', 8000);
-                }
-
-            } catch (error) {
-                progressBar.style.backgroundColor = '#ef4444';
-                showNotification(error.message, 'error', 8000);
-            } finally {
-                // Hanya reset antrian dan tombol, biarkan hasil tetap terlihat
-                resetQueueAndButton();
-            }
-        });
-    </script>
+    <script src="script.js"></script>
 </body>
 </html>
