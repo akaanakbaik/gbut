@@ -4,130 +4,79 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Kabox - Simple File Hosting</title>
-    <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Google Fonts: VT323 for Pixel theme -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic" crossorigin>
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=VT323&display=swap" rel="stylesheet">
     <style>
-        /* Custom styles for the pixel theme */
-        body {
-            font-family: 'VT323', monospace;
-            background-color: #1a1a1a;
-            color: #55d5ff;
-        }
-        .pixel-border {
-            border: 4px solid #55d5ff;
-            box-shadow: 6px 6px 0 #0b2a33;
-        }
-        .pixel-border-dashed {
-            border: 4px dashed #55d5ff;
-        }
-        .pixel-button {
-            border: 4px solid #55d5ff;
-            transition: all 0.2s ease;
-            box-shadow: 4px 4px 0 #0b2a33;
-        }
-        .pixel-button:hover {
-            background-color: #55d5ff;
-            color: #1a1a1a;
-            box-shadow: 2px 2px 0 #0b2a33;
-            transform: translate(2px, 2px);
-        }
-        .pixel-button:active {
-            box-shadow: 0 0 0 #0b2a33;
-            transform: translate(4px, 4px);
-        }
-        .pixel-button:disabled {
-            background-color: #333;
-            color: #888;
-            border-color: #888;
-            box-shadow: none;
-            transform: none;
-            cursor: not-allowed;
-        }
-        .progress-bar-container {
-            border: 2px solid #55d5ff;
-            padding: 2px;
-        }
-        .progress-bar {
-            background-color: #55d5ff;
-            height: 20px;
-            transition: width 0.5s ease-in-out;
-        }
-        /* Custom scrollbar for the pixel theme */
+        body { font-family: 'VT323', monospace; background-color: #1a1a1a; color: #55d5ff; }
+        .pixel-border { border: 4px solid #55d5ff; box-shadow: 6px 6px 0 #0b2a33; }
+        .pixel-border-dashed { border: 4px dashed #55d5ff; }
+        .pixel-button { border: 4px solid #55d5ff; transition: all 0.2s ease; box-shadow: 4px 4px 0 #0b2a33; }
+        .pixel-button:hover { background-color: #55d5ff; color: #1a1a1a; box-shadow: 2px 2px 0 #0b2a33; transform: translate(2px, 2px); }
+        .pixel-button:active { box-shadow: 0 0 0 #0b2a33; transform: translate(4px, 4px); }
+        .pixel-button:disabled { background-color: #333; color: #888; border-color: #888; box-shadow: none; transform: none; cursor: not-allowed; }
+        .progress-bar-container { border: 2px solid #55d5ff; padding: 2px; }
+        .progress-bar { background-color: #55d5ff; height: 20px; transition: width 0.5s ease-in-out; }
         ::-webkit-scrollbar { width: 12px; }
         ::-webkit-scrollbar-track { background: #1a1a1a; border-left: 2px solid #55d5ff; }
         ::-webkit-scrollbar-thumb { background: #55d5ff; }
-
-        /* Style untuk teks bendera "aka" */
-        .bendera-text {
-            background: linear-gradient(to bottom, #FF5555 50%, #ffffff 50%);
-            -webkit-background-clip: text;
-            background-clip: text;
-            color: transparent;
-            -webkit-text-fill-color: transparent;
-            font-weight: bold;
-            -webkit-text-stroke: 0.5px rgba(0,0,0,0.5);
-            transition: filter 0.2s ease; /* Transisi untuk hover effect */
-        }
+        .bendera-text { background: linear-gradient(to bottom, #FF5555 50%, #ffffff 50%); -webkit-background-clip: text; background-clip: text; color: transparent; -webkit-text-fill-color: transparent; font-weight: bold; -webkit-text-stroke: 0.5px rgba(0,0,0,0.5); transition: filter 0.2s ease; }
+        .aka-link:hover .bendera-text { filter: brightness(1.25); }
         
-        /* Hover effect untuk link "aka" */
-        .aka-link:hover .bendera-text {
-            filter: brightness(1.25);
+        /* Notifikasi Toast */
+        #notification {
+            transition: transform 0.4s ease-in-out, opacity 0.4s ease-in-out;
+            transform: translateX(120%);
+            opacity: 0;
         }
+        #notification.show {
+            transform: translateX(0);
+            opacity: 1;
+        }
+        #notification.success { background-color: #16a34a; border-color: #22c55e; color: #ffffff; box-shadow: 6px 6px 0 #052e16; }
+        #notification.error { background-color: #dc2626; border-color: #ef4444; color: #ffffff; box-shadow: 6px 6px 0 #450a0a; }
     </style>
 </head>
 <body class="min-h-screen flex flex-col items-center justify-center p-4 text-2xl">
+
+    <!-- Notification Toast -->
+    <div id="notification" class="fixed top-5 right-5 p-4 rounded-lg text-lg pixel-border max-w-sm z-50">
+        <p id="notification-message"></p>
+    </div>
 
     <main class="w-full max-w-4xl mx-auto">
         <div class="pixel-border bg-[#111] p-6 md:p-10 text-center">
             <h1 class="text-6xl md:text-8xl mb-4">kabox</h1>
             <p class="mb-8">Seret & Lepas File Untuk Diunggah</p>
-
-            <!-- Dropzone -->
             <div id="dropzone" class="pixel-border-dashed p-8 md:p-12 mb-6 cursor-pointer transition-colors duration-300">
                 <p id="dropzone-text">Seret file ke sini, atau klik untuk memilih</p>
                 <input type="file" id="file-input" class="hidden" multiple accept="*/*">
             </div>
-
-            <!-- URL Input -->
             <div class="mb-6">
                 <input type="text" id="url-input" placeholder="Atau tempel URL untuk diunggah" class="w-full bg-transparent p-3 text-center focus:outline-none pixel-border">
             </div>
-
-            <!-- File Queue & Progress -->
             <div id="file-queue" class="text-left mb-6 space-y-2"></div>
-
-            <!-- Buttons -->
             <div class="flex flex-col sm:flex-row gap-4 justify-center">
                 <button id="upload-btn" class="pixel-button px-8 py-3 w-full sm:w-auto">Unggah</button>
                 <button id="cancel-btn" class="pixel-button px-8 py-3 w-full sm:w-auto bg-red-500/20 border-red-400 text-red-400">Batal</button>
             </div>
         </div>
-
-        <!-- Results & Error Display -->
         <div id="results-container" class="pixel-border bg-[#111] p-6 md:p-10 mt-8 hidden">
             <h2 id="results-title" class="text-4xl mb-6 text-center">Hasil URL:</h2>
             <div id="results" class="space-y-4"></div>
         </div>
-        
-        <!-- API Docs link -->
         <div class="text-center mt-8">
             <a href="/api-docs.html" class="pixel-button px-6 py-2">API Docs & Info</a>
         </div>
     </main>
 
-    <!-- Footer dengan Link -->
     <footer class="text-center text-lg p-4 mt-4 text-[#55d5ff]">
         di buat dengan code dan <span class="text-red-500">❤️</span>, crafted by <a href="https://akadev.my.id" target="_blank" rel="noopener noreferrer" class="aka-link"><span class="bendera-text">aka</span></a>
     </footer>
 
-    <!-- Import Config and Main Script -->
     <script src="config.js"></script>
     <script>
-        // DOM Elements
         const dropzone = document.getElementById('dropzone');
         const dropzoneText = document.getElementById('dropzone-text');
         const fileInput = document.getElementById('file-input');
@@ -138,10 +87,20 @@
         const resultsContainer = document.getElementById('results-container');
         const resultsTitle = document.getElementById('results-title');
         const resultsDiv = document.getElementById('results');
-
+        const notification = document.getElementById('notification');
+        const notificationMessage = document.getElementById('notification-message');
+        let notificationTimeout;
         let filesToUpload = [];
 
         // --- UI Functions ---
+        const showNotification = (message, type = 'success', duration = 5000) => {
+            clearTimeout(notificationTimeout);
+            notificationMessage.textContent = message;
+            notification.className = 'fixed top-5 right-5 p-4 rounded-lg text-lg pixel-border max-w-sm z-50'; // Reset
+            notification.classList.add(type, 'show');
+            notificationTimeout = setTimeout(() => notification.classList.remove('show'), duration);
+        };
+
         const resetUploader = () => {
             filesToUpload = [];
             fileInput.value = '';
@@ -149,7 +108,6 @@
             updateFileQueueUI();
             dropzoneText.textContent = 'Seret file ke sini, atau klik untuk memilih';
             resultsContainer.classList.add('hidden');
-            resultsDiv.innerHTML = '';
             uploadBtn.disabled = false;
             uploadBtn.textContent = 'Unggah';
         };
@@ -157,27 +115,18 @@
         const updateFileQueueUI = () => {
             fileQueueContainer.innerHTML = '';
             if (filesToUpload.length === 0 && !urlInput.value) return;
-            
             if (urlInput.value) {
                  const urlElement = document.createElement('div');
                  urlElement.className = 'p-2 bg-black/20';
                  urlElement.textContent = `URL: ${urlInput.value.substring(0, 50)}${urlInput.value.length > 50 ? '...' : ''}`;
                  fileQueueContainer.appendChild(urlElement);
             }
-
-            filesToUpload.forEach((file) => {
+            filesToUpload.forEach(file => {
                 const fileElement = document.createElement('div');
                 fileElement.className = 'p-2 bg-black/20';
                 fileElement.textContent = `${file.name} (${(file.size / 1024 / 1024).toFixed(2)} MB)`;
                 fileQueueContainer.appendChild(fileElement);
             });
-        };
-
-        const displayError = (message) => {
-            resultsContainer.classList.remove('hidden');
-            resultsTitle.textContent = 'Terjadi Error!';
-            resultsTitle.classList.add('text-red-400');
-            resultsDiv.innerHTML = `<p class="text-center text-red-400">${message}</p>`;
         };
 
         const displaySuccess = (files) => {
@@ -188,24 +137,19 @@
             files.forEach(file => {
                 const resultEl = document.createElement('div');
                 resultEl.className = 'flex flex-col sm:flex-row items-center gap-4';
-                resultEl.innerHTML = `
-                    <input type="text" readonly value="${window.location.origin}${file.url}" class="w-full bg-transparent p-2 focus:outline-none pixel-border text-center sm:text-left">
-                    <button class="copy-btn pixel-button px-4 py-2 w-full sm:w-auto">Salin</button>
-                `;
+                resultEl.innerHTML = `<input type="text" readonly value="${window.location.origin}${file.url}" class="w-full bg-transparent p-2 focus:outline-none pixel-border text-center sm:text-left"><button class="copy-btn pixel-button px-4 py-2 w-full sm:w-auto">Salin</button>`;
                 resultsDiv.appendChild(resultEl);
             });
-            
             document.querySelectorAll('.copy-btn').forEach(button => {
                 button.addEventListener('click', e => {
                     const urlField = e.target.previousElementSibling;
                     urlField.select();
                     try {
                         document.execCommand('copy');
-                        e.target.textContent = 'Disalin!';
+                        showNotification('URL disalin!', 'success');
                     } catch (err) {
-                        e.target.textContent = 'Gagal!';
+                        showNotification('Gagal menyalin!', 'error');
                     }
-                    setTimeout(() => { e.target.textContent = 'Salin'; }, 2000);
                 });
             });
         };
@@ -213,20 +157,16 @@
         // --- Event Listeners ---
         dropzone.addEventListener('click', () => fileInput.click());
         cancelBtn.addEventListener('click', resetUploader);
-
-        ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
-            dropzone.addEventListener(eventName, e => { e.preventDefault(); e.stopPropagation(); });
-        });
+        ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => dropzone.addEventListener(eventName, e => { e.preventDefault(); e.stopPropagation(); }));
         ['dragenter', 'dragover'].forEach(eventName => dropzone.addEventListener(eventName, () => dropzone.classList.add('bg-blue-500/20')));
         ['dragleave', 'drop'].forEach(eventName => dropzone.addEventListener(eventName, () => dropzone.classList.remove('bg-blue-500/20')));
-
         dropzone.addEventListener('drop', e => handleFiles(e.dataTransfer.files));
         fileInput.addEventListener('change', e => handleFiles(e.target.files));
         urlInput.addEventListener('input', updateFileQueueUI);
 
         const handleFiles = (newFiles) => {
             if (filesToUpload.length + newFiles.length > 5) {
-                alert('Maksimal 5 file sekali unggah.');
+                showNotification('Maksimal 5 file sekali unggah.', 'error');
                 return;
             }
             filesToUpload.push(...Array.from(newFiles));
@@ -237,73 +177,49 @@
         // --- Upload Logic ---
         uploadBtn.addEventListener('click', async () => {
             if (filesToUpload.length === 0 && !urlInput.value) {
-                alert('Pilih file atau masukkan URL terlebih dahulu.');
+                showNotification('Pilih file atau masukkan URL dulu.', 'error');
                 return;
             }
             if (filesToUpload.length > 0 && urlInput.value) {
-                alert('Unggah file atau URL, tidak bisa keduanya bersamaan.');
+                showNotification('Unggah file atau URL, jangan keduanya.', 'error');
                 return;
             }
 
             const formData = new FormData();
             if (filesToUpload.length > 0) {
-                for (const file of filesToUpload) {
-                    if (file.size > 20 * 1024 * 1024) {
-                        alert(`File ${file.name} melebihi batas 20MB.`);
-                        return;
-                    }
-                    formData.append('files[]', file);
-                }
+                filesToUpload.forEach(file => formData.append('files[]', file));
             } else if (urlInput.value) {
                 formData.append('url', urlInput.value);
             }
 
             uploadBtn.disabled = true;
             uploadBtn.textContent = 'Mengunggah...';
-            fileQueueContainer.innerHTML = '<div class="progress-bar-container"><div id="total-progress" class="progress-bar" style="width: 0%;"></div></div>';
+            fileQueueContainer.innerHTML = '<div class="progress-bar-container"><div id="total-progress" class="progress-bar" style="width: 50%;"></div></div>';
             const progressBar = document.getElementById('total-progress');
-            
-            let progress = 0;
-            const interval = setInterval(() => {
-                progress += Math.random() * 10;
-                if (progress > 90) progress = 90;
-                progressBar.style.width = progress + '%';
-            }, 300);
 
             try {
-                const response = await fetch(config.apiEndpoint, {
-                    method: 'POST',
-                    body: formData
-                });
-                
-                clearInterval(interval);
-                progressBar.style.width = '100%';
-
+                const response = await fetch(config.apiEndpoint, { method: 'POST', body: formData });
                 const result = await response.json();
+                progressBar.style.width = '100%';
 
                 if (!response.ok || !result.success) {
                     throw new Error(result.error || `HTTP error! Status: ${response.status}`);
                 }
 
-                displaySuccess(result.files);
+                showNotification('Upload sukses!', 'success');
+                if (result.files && result.files.length > 0) {
+                    displaySuccess(result.files);
+                }
+                // Handle partial success
+                if (result.errors && result.errors.length > 0) {
+                    showNotification(`Beberapa file gagal: ${result.errors.join(', ')}`, 'error', 8000);
+                }
 
             } catch (error) {
-                clearInterval(interval);
-                progressBar.style.width = '100%';
                 progressBar.style.backgroundColor = '#ef4444';
-                const errorMessage = error.message.includes('Failed to fetch') 
-                    ? `${error.message}. (Catatan: Ini sering terjadi jika Anda menjalankan di localhost tanpa server PHP. Coba deploy ke Vercel.)`
-                    : error.message;
-                displayError(errorMessage);
+                showNotification(error.message, 'error', 8000);
             } finally {
-                setTimeout(() => {
-                    uploadBtn.disabled = false;
-                    uploadBtn.textContent = 'Unggah';
-                    filesToUpload = [];
-                    fileInput.value = '';
-                    urlInput.value = '';
-                    updateFileQueueUI();
-                }, 2000);
+                setTimeout(resetUploader, 1500);
             }
         });
     </script>
