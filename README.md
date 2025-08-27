@@ -31,7 +31,7 @@ Selamat datang di Kabox, sebuah layanan upload file simpel dengan tema pixel art
 
 Statistik ini di-generate secara otomatis berdasarkan kode di dalam repository.
 
-[![Top Langs](https://github-readme-stats.vercel.app/api/top-langs/?username=USERNAME&repo=REPO&layout=compact&theme=dark&hide_border=true&bg_color=181A1B&title_color=00A9FF&text_color=E2E2E2&icon_color=2A9D8F)](https://github.com/USERNAME/REPO)
+[![Top Langs](https://github-readme-stats.vercel.app/api/top-langs/?username=akaanakbaik&repo=kabox-web-uploader&layout=compact&theme=dark&hide_border=true&bg_color=181A1B&title_color=00A9FF&text_color=E2E2E2&icon_color=2A9D8F)](https://github.com/akaanakbaik/kabox-web-uploader)
 
 ---
 
