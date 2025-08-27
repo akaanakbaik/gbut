@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Kabox -Upload media to URL </title>
+    <title>Kabox - Pixel Perfect File Hosting</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -19,7 +19,7 @@
     <main class="w-full max-w-4xl mx-auto">
         <div class="pixel-border bg-[var(--bg-panel)] p-4 sm:p-6 md:p-8 text-center">
             <h1 class="text-6xl sm:text-7xl md:text-8xl mb-2 text-[var(--border-cyber-blue)]" style="text-shadow: 4px 4px 0px #005C8E;">kabox</h1>
-            <p class="mb-6 sm:mb-8 text-lg sm:text-xl text-[var(--text-cyber-blue)]">Upload media to URL</p>
+            <p class="mb-6 sm:mb-8 text-lg sm:text-xl text-[var(--text-cyber-blue)]">Pixel Perfect File Hosting</p>
             
             <div id="dropzone" class="p-6 sm:p-10 mb-6 cursor-pointer">
                 <p id="dropzone-text" class="text-base sm:text-lg text-[var(--dropzone-border)] pointer-events-none">Seret file ke sini, atau klik untuk memilih</p>
@@ -31,6 +31,12 @@
             </div>
             
             <div id="file-queue" class="text-left mb-6 space-y-2 text-base sm:text-lg"></div>
+            
+            <div id="progress-container" class="mb-6 hidden">
+                <div class="progress-bar-container">
+                    <div id="total-progress" class="progress-bar" style="width: 0%;"></div>
+                </div>
+            </div>
             
             <div class="flex flex-col sm:flex-row gap-4 justify-center">
                 <button id="upload-btn" class="pixel-button btn-go px-6 py-3 text-lg sm:text-xl w-full sm:w-auto">Unggah</button>
@@ -46,8 +52,11 @@
         <div class="text-center mt-8">
             <a href="/api-docs.html" class="pixel-button btn-info px-6 py-2 text-lg sm:text-xl">API Docs & Info</a>
         </div>
+        
+        <div class="text-center mt-8">
+    <a href="info-db.html" class="pixel-button btn-info px-6 py-2 text-lg sm:text-xl">Info database web</a>
+</div>
     </main>
-
 
     <footer class="text-center text-base sm:text-lg p-4 mt-4 text-[var(--text-cyber-blue)]">
         di buat dengan code dan <span class="text-red-500">❤️</span>, crafted by <a href="https://akadev.my.id" target="_blank" rel="noopener noreferrer" class="aka-link"><span class="bendera-text">aka</span></a>
