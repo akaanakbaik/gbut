@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kabox - Info Database</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=VT323&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-deep-space: #181A1B;
+            --bg-panel: #222426;
+            --border-cyber-blue: #00A9FF;
+            --text-cyber-blue: #87C4FF;
+            --text-light: #E2E2E2;
+            --btn-info-bg: var(--bg-panel);
+            --btn-info-border: var(--border-cyber-blue);
+            --btn-info-shadow: #005C8E;
+            --btn-info-text: var(--text-cyber-blue);
+            --status-online: #2A9D8F;
+            --status-offline: #E76F51;
+            --result-url-text: #A7FF89;
+        }
+        body { font-family: 'VT323', monospace; background-color: var(--bg-deep-space); color: var(--text-light); }
+        .pixel-border { border: 4px solid var(--border-cyber-blue); box-shadow: 6px 6px 0 var(--btn-info-shadow); }
+        .pixel-button {
+            transition: all 0.15s ease-out;
+            color: white;
+            text-shadow: 2px 2px 0px rgba(0,0,0,0.4);
+            display: inline-block;
+        }
+        .pixel-button:hover { transform: translate(2px, 2px); }
+        .pixel-button:active { transform: translate(4px, 4px); }
+        .btn-info { 
+            background-color: var(--btn-info-bg); 
+            border: 4px solid var(--btn-info-border); 
+            box-shadow: 4px 4px 0 var(--btn-info-shadow); 
+            color: var(--btn-info-text); 
+        }
+        .btn-info:hover { 
+            background-color: var(--btn-info-border); 
+            color: var(--bg-deep-space); 
+            text-shadow: none;
+            box-shadow: 2px 2px 0 var(--btn-info-shadow);
+        }
+        .btn-info:active { box-shadow: 0 0 0 var(--btn-info-shadow); }
+        h2 { 
+            border-bottom: 4px solid var(--border-cyber-blue); 
+            padding-bottom: 0.5rem; 
+            margin-bottom: 1rem; 
+            color: var(--border-cyber-blue);
+        }
+        .info-value {
+            color: var(--result-url-text);
+            font-size: 1.5em;
+        }
+        .status-dot {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            margin-right: 10px;
+            vertical-align: middle;
+        }
+        .online { background-color: var(--status-online); }
+        .offline { background-color: var(--status-offline); }
+    </style>
+</head>
+<body class="p-4 md:p-8 text-xl sm:text-2xl">
+    <div class="max-w-4xl mx-auto">
+        <div class="mb-8">
+            <a href="/" class="pixel-button btn-info px-6 py-2 text-lg sm:text-xl">&lt; Kembali</a>
+        </div>
+
+        <div class="pixel-border bg-[var(--bg-panel)] p-4 sm:p-6 md:p-10">
+            <h1 class="text-5xl sm:text-6xl md:text-7xl mb-8 text-center text-[var(--border-cyber-blue)]" style="text-shadow: 4px 4px 0px #005C8E;">Info Penyimpanan</h1>
+
+            <div class="space-y-6 text-lg sm:text-xl">
+                <div>
+                    <h2 class="text-2xl sm:text-3xl">Penyimpanan Terpakai</h2>
+                    <p id="storage-used" class="info-value">Menghitung...</p>
+                </div>
+                <div>
+                    <h2 class="text-2xl sm:text-3xl">Penyimpanan Maksimal (Free Tier)</h2>
+                    <p class="info-value">1 GB</p>
+                </div>
+                <div>
+                    <h2 class="text-2xl sm:text-3xl">Jumlah File Terunggah</h2>
+                    <p id="file-count" class="info-value">Menghitung...</p>
+                </div>
+                <div>
+                    <h2 class="text-2xl sm:text-3xl">Status</h2>
+                    <div id="db-status" class="info-value flex items-center">
+                        <span class="status-dot offline"></span>
+                        <span>Mengecek...</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script type="module">
+        import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm'
+
+        const SUPABASE_URL = 'https://bgykitdaudcmcetqijkd.supabase.co';
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJneWtpdGRhdWRjbWNldHFpamtkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTA0MzEyNjcsImV4cCI6MjA2NjAwNzI2N30.CZjOxc0_7cHEvPFUDr7zLzqaDDeIr_5tUcObBLKqg3Q';
+        const BUCKET_NAME = 'kabox-uploads';
+
+        const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+        const storageUsedEl = document.getElementById('storage-used');
+        const fileCountEl = document.getElementById('file-count');
+        const dbStatusEl = document.getElementById('db-status');
+
+        async function getStorageStats() {
+            try {
+                const { data, error } = await supabase.storage.from(BUCKET_NAME).list('', {
+                    limit: 1000, 
+                    offset: 0,
+                    sortBy: { column: 'name', order: 'asc' },
+                });
+
+                if (error) {
+                    throw error;
+                }
+
+                const totalSize = data.reduce((acc, file) => acc + file.metadata.size, 0);
+                const fileCount = data.length;
+                const maxStorageBytes = 1 * 1024 * 1024 * 1024; // 1 GB
+                const percentageUsed = (totalSize / maxStorageBytes * 100).toFixed(2);
+
+                const formatBytes = (bytes, decimals = 2) => {
+                    if (bytes === 0) return '0 Bytes';
+                    const k = 1024;
+                    const dm = decimals < 0 ? 0 : decimals;
+                    const sizes = ['Bytes', 'KB', 'MB', 'GB', 'TB'];
+                    const i = Math.floor(Math.log(bytes) / Math.log(k));
+                    return parseFloat((bytes / Math.pow(k, i)).toFixed(dm)) + ' ' + sizes[i];
+                }
+
+                storageUsedEl.textContent = `${formatBytes(totalSize)} (${percentageUsed}%)`;
+                fileCountEl.textContent = `${fileCount} file`;
+                dbStatusEl.innerHTML = `<span class="status-dot online"></span><span>Online</span>`;
+
+            } catch (err) {
+                storageUsedEl.textContent = 'Gagal mengambil data';
+                fileCountEl.textContent = 'Gagal mengambil data';
+                dbStatusEl.innerHTML = `<span class="status-dot offline"></span><span>Error: ${err.message}</span>`;
+            }
+        }
+
+        getStorageStats();
+    </script>
+</body>
+</html>
